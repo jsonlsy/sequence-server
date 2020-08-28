@@ -24,8 +24,7 @@ io.on('connection', (socket) => {
 
   socket.join(room, () => {
     game.addPlayer(socket.id);
-    console.log(game.players);
-    // socket.broadcast.emit('gameState', game.state());
+    broadcastGameState(socket, game.state());
   });
 
   socket.on('play', (card, tileX, tileY) => {

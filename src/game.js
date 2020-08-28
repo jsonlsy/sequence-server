@@ -27,7 +27,7 @@ class Game {
 
   addPlayer(playerId) {
     // TODO: maximum number of players
-    if (this.playing) return;
+    // if (this.playing) return;
     let color;
 
     if (Object.keys(this.players).length % 2 === 0) {
@@ -56,6 +56,7 @@ class Game {
   }
 
   state() {
+    console.log(this.players);
     return {
       players: this.players,
       board: this.board.state,
