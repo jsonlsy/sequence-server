@@ -1,17 +1,18 @@
 class Board {
-    constructor() {
-        // suits: S, H, C, D
-        this.boardArray = [
-            [ {card: '2H'}, {card: '3H'} ],
-            [ {card: '2S'}, {card: '3S'} ]
-        ];
-    }
+  constructor() {
+    // suits: S, H, C, D
+    this.boardArray = [
+      [{ card: '2H' }, { card: '3H' }],
+      [{ card: '2S' }, { card: '3S' }],
+    ];
+  }
 
-    assign(x, y, color) {
-        const tile = this.boardArray[x][y];
-        if(tile.color) return false;
-        tile.color = color;
-    }
+  assign(x, y, color) {
+    const tile = this.boardArray[x][y];
+    if (tile.color) return false;
+    tile.color = color;
+    return true;
+  }
 }
 
 export default Board;
