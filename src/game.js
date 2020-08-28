@@ -1,4 +1,5 @@
 import Board from './board';
+import Deck from './deck';
 
 const RED_COLOR = 'red';
 const BLUE_COLOR = 'blue';
@@ -6,17 +7,26 @@ const BLUE_COLOR = 'blue';
 class Game {
   constructor() {
     this.playing = false;
-    this.players = {};
+    this.players = {}; // { socketId: { color: } }
+    this.playersCards = {}; // { socketId: [] }
     this.turns = [];
     this.currentTurn = 0;
     this.board = new Board();
+    this.deck = new Deck();
   }
 
   start() {
+    // TODO: check that we have an even number of players
     this.playing = true;
+    this.deck.shuffleAll();
+    Object.keys(this.players).forEach((playerId) => {
+      // TODO: calculate number of cards based on number of players
+      this.playersCards[playerId] = this.deck.draw(5);
+    });
   }
 
   addPlayer(playerId) {
+    // TODO: maximum number of players
     if (this.playing) return;
     let color;
 
@@ -25,7 +35,7 @@ class Game {
     } else {
       color = BLUE_COLOR;
     }
-    this.players[playerId] = color;
+    this.players[playerId] = { color };
   }
 
   removePlayer(playerId) {
@@ -39,15 +49,21 @@ class Game {
 
     // TODO: check for special card
 
-    const color = this.players[playerId];
+    // TODO: check if it is player's turn
+
+    const { color } = this.players[playerId];
     this.board.assign(tileX, tileY, color);
   }
 
   state() {
     return {
       players: this.players,
-      board: this.board.boardArray,
+      board: this.board.state,
     };
+  }
+
+  playerCards(playerId) {
+    return this.playersCards[playerId];
   }
 }
 

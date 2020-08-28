@@ -11,17 +11,39 @@ app.get('/', (_req, res) => {
 });
 
 const game = new Game();
+const room = 'sequence';
+
+// TODO: change to broadcast to room only
+const broadcastGameState = (socket, gameState) => {
+  socket.emit('gameState', gameState);
+  socket.to(room).emit('gameState', gameState);
+};
 
 io.on('connection', (socket) => {
   console.log('a user connected');
 
-  game.addPlayer(socket.id);
-  console.log(game.players);
+  socket.join(room, () => {
+    game.addPlayer(socket.id);
+    console.log(game.players);
+    // socket.broadcast.emit('gameState', game.state());
+  });
 
   socket.on('play', (card, tileX, tileY) => {
     game.play(card, tileX, tileY, socket.id);
-    // TODO: change to emit only to room only
-    socket.broadcast.emit('gameStateUpdate', game.state());
+    broadcastGameState(socket, game.state());
+  });
+
+  socket.on('start', () => {
+    console.log('starting game');
+    game.start();
+
+    socket.emit('playerCards', game.playerCards(socket.id));
+    Object.keys(game.players).forEach((socketId) => {
+      console.log(socketId);
+      socket.to(`${socketId}`).emit('playerCards', game.playerCards(socketId));
+    });
+
+    broadcastGameState(socket, game.state());
   });
 
   socket.on('disconnect', () => {
