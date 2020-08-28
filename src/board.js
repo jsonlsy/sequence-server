@@ -1,8 +1,8 @@
+import boardMap from './boardMap';
+
 class Board {
   constructor() {
-    // suits: S, H, C, D
-    const boardMap = [['2H', '3H'], ['2S', '3S']];
-    this.state = [];
+    this.state = []; // [{ card: , color: }]
     this.cardMap = {};
     boardMap.forEach((row, rowIndex) => {
       this.state[rowIndex] = [];

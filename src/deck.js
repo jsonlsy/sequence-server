@@ -1,10 +1,10 @@
 import { Deck } from 'cards/src/deck';
-import { spades, hearts, diamonds, clubs } from 'cards/src/suits';
 import { Card } from 'cards/src/card';
+import { spades, hearts, diamonds, clubs } from 'cards/src/suits';
 import { ace, two, three, four, five, six, seven, eight, nine, ten, jack, queen, king } from 'cards/src/ranks';
 
-const suits = [ spades, hearts, diamonds, clubs ];
-const ranks = [ ace, two, three, four, five, six, seven, eight, nine, ten, jack, queen, king ];
+const suits = [spades, hearts, diamonds, clubs];
+const ranks = [ace, two, three, four, five, six, seven, eight, nine, ten, jack, queen, king];
 
 const generateCards = () => {
   let cards = [];
