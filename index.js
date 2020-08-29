@@ -27,9 +27,10 @@ io.on('connection', (socket) => {
     broadcastGameState(socket, game.state());
   });
 
-  socket.on('play', (card, tileX, tileY) => {
-    game.play(card, tileX, tileY, socket.id);
+  socket.on('play', ({ cardCode, rowIndex, colIndex }) => {
+    game.play(cardCode, rowIndex, colIndex, socket.id);
     broadcastGameState(socket, game.state());
+    socket.emit('playerCards', game.playerCards(socket.id));
   });
 
   socket.on('start', () => {

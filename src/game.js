@@ -1,5 +1,5 @@
-import Board from './board';
-import Deck from './deck';
+import Board from './board/Board';
+import Deck from './deck/Deck';
 
 const RED_COLOR = 'red';
 const BLUE_COLOR = 'blue';
@@ -8,7 +8,7 @@ class Game {
   constructor() {
     this.playing = false;
     this.players = {}; // { socketId: { color: } }
-    this.playersCards = {}; // { socketId: [] }
+    this.playerCardsMap = {}; // { socketId: [] }
     this.turns = [];
     this.currentTurn = 0;
     this.board = new Board();
@@ -21,7 +21,7 @@ class Game {
     this.deck.shuffleAll();
     Object.keys(this.players).forEach((playerId) => {
       // TODO: calculate number of cards based on number of players
-      this.playersCards[playerId] = this.deck.draw(5);
+      this.playerCardsMap[playerId] = this.deck.draw(5);
     });
   }
 
@@ -44,19 +44,29 @@ class Game {
     // TODO: stop game and wait for another player to join
   }
 
-  play(card, tileX, tileY, playerId) {
+  play(cardCode, rowIndex, colIndex, playerId) {
     // TODO: check if player has card?
 
     // TODO: check for special card
 
     // TODO: check if it is player's turn
 
+    // TODO: check if card is mapped to row and col indexes
+
     const { color } = this.players[playerId];
-    this.board.assign(tileX, tileY, color);
+    this.board.assign(rowIndex, colIndex, color);
+    let cardPlayed;
+    this.playerCardsMap[playerId].forEach((playerCard, i) => {
+      if (!cardPlayed && playerCard.getCode() === cardCode) {
+        cardPlayed = playerCard;
+        const [newCard] = this.deck.draw(1);
+        this.playerCardsMap[playerId][i] = newCard;
+      }
+    });
+    this.deck.discard(cardPlayed);
   }
 
   state() {
-    console.log(this.players);
     return {
       players: this.players,
       board: this.board.state,
@@ -64,7 +74,7 @@ class Game {
   }
 
   playerCards(playerId) {
-    return this.playersCards[playerId];
+    return this.playerCardsMap[playerId];
   }
 }
 

@@ -2,19 +2,19 @@ import boardMap from './boardMap';
 
 class Board {
   constructor() {
-    this.state = []; // [{ card: , color: }]
+    this.state = []; // [{ cardCode: , color: }]
     this.cardMap = {};
     boardMap.forEach((row, rowIndex) => {
       this.state[rowIndex] = [];
-      row.forEach((card, colIndex) => {
-        this.cardMap[card] = [rowIndex, colIndex];
-        this.state[rowIndex][colIndex] = { card };
+      row.forEach((cardCode, colIndex) => {
+        this.cardMap[cardCode] = [rowIndex, colIndex];
+        this.state[rowIndex][colIndex] = { cardCode };
       });
     });
   }
 
-  assign(x, y, color) {
-    const tile = this.state[x][y];
+  assign(rowIndex, colIndex, color) {
+    const tile = this.state[rowIndex][colIndex];
     if (tile.color) return false;
     tile.color = color;
     return true;

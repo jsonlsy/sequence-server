@@ -1,7 +1,7 @@
 import { Deck } from 'cards/src/deck';
-import { Card } from 'cards/src/card';
-import { spades, hearts, diamonds, clubs } from './suits';
 import { ace, two, three, four, five, six, seven, eight, nine, ten, jack, queen, king } from 'cards/src/ranks';
+import Card from './Card';
+import { spades, hearts, diamonds, clubs } from './suits';
 
 const suits = [spades, hearts, diamonds, clubs];
 const ranks = [ace, two, three, four, five, six, seven, eight, nine, ten, jack, queen, king];
