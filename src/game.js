@@ -70,6 +70,7 @@ class Game {
     return {
       players: this.players,
       board: this.board.state,
+      winner: this.board.winner,
     };
   }
 

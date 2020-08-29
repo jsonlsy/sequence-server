@@ -8,6 +8,10 @@ class SequenceCard extends Card {
   getCode() {
     return `${this.rank.shortName}${this.suit.name}`;
   }
+
+  isWildcard() {
+    return true;
+  }
 }
 
 export default SequenceCard;
