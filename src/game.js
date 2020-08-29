@@ -6,9 +6,11 @@ const BLUE_COLOR = 'blue';
 
 class Game {
   constructor() {
-    this.playing = false;
+    this.started = false;
+    this.paused = false;
     this.players = {}; // { socketId: { color: } }
     this.playerCardsMap = {}; // { socketId: [] }
+    this.removedPlayersCards = [];
     this.turns = [];
     this.currentTurn = 0;
     this.board = new Board();
@@ -17,7 +19,10 @@ class Game {
 
   start() {
     // TODO: check that we have an even number of players
-    this.playing = true;
+
+    if (this.started) return;
+
+    this.started = true;
     this.deck.shuffleAll();
     Object.keys(this.players).forEach((playerId) => {
       // TODO: calculate number of cards based on number of players
@@ -27,7 +32,8 @@ class Game {
 
   addPlayer(playerId) {
     // TODO: maximum number of players
-    // if (this.playing) return;
+
+    if (this.started && !this.paused) return;
     let color;
 
     if (Object.keys(this.players).length % 2 === 0) {
@@ -36,12 +42,23 @@ class Game {
       color = BLUE_COLOR;
     }
     this.players[playerId] = { color };
+
+    if (this.paused) {
+      this.playerCardsMap[playerId] = this.removedPlayersCards.shift();
+      if (!this.removedPlayersCards.length) this.paused = false;
+    }
   }
 
   removePlayer(playerId) {
+    if (!this.players[playerId]) return;
+
     delete this.players[playerId];
 
-    // TODO: stop game and wait for another player to join
+    if (this.started) {
+      this.paused = true;
+      this.removedPlayersCards.push(this.playerCardsMap[playerId]);
+      delete this.playerCardsMap[playerId];
+    }
   }
 
   play(cardCode, rowIndex, colIndex, playerId) {
@@ -71,6 +88,10 @@ class Game {
       players: this.players,
       board: this.board.state,
       winner: this.board.winner,
+      status: {
+        started: this.started,
+        paused: this.paused,
+      },
     };
   }
 

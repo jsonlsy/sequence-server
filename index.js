@@ -24,6 +24,9 @@ io.on('connection', (socket) => {
 
   socket.join(room, () => {
     game.addPlayer(socket.id);
+    if (game.started) {
+      socket.emit('playerCards', game.playerCards(socket.id));
+    }
     broadcastGameState(socket, game.state());
   });
 
@@ -39,7 +42,6 @@ io.on('connection', (socket) => {
 
     socket.emit('playerCards', game.playerCards(socket.id));
     Object.keys(game.players).forEach((socketId) => {
-      console.log(socketId);
       socket.to(`${socketId}`).emit('playerCards', game.playerCards(socketId));
     });
 
@@ -49,6 +51,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected');
     game.removePlayer(socket.id);
+    broadcastGameState(socket, game.state());
   });
 });
 
