@@ -10,7 +10,6 @@ app.get('/', (_req, res) => {
   res.sendFile(`${__dirname}/index.html`);
 });
 
-const game = new Game();
 const room = 'sequence';
 
 // TODO: change to broadcast to room only
@@ -18,6 +17,15 @@ const broadcastGameState = (socket, gameState) => {
   socket.emit('gameState', gameState);
   socket.to(room).emit('gameState', gameState);
 };
+
+const broadcastAllPlayersCards = (socket, game) => {
+  socket.emit('playerCards', game.playerCards(socket.id));
+  Object.keys(game.players).forEach((socketId) => {
+    socket.to(`${socketId}`).emit('playerCards', game.playerCards(socketId));
+  });
+};
+
+const game = new Game();
 
 io.on('connection', (socket) => {
   console.log('a user connected');
@@ -40,11 +48,15 @@ io.on('connection', (socket) => {
     console.log('starting game');
     game.start();
 
-    socket.emit('playerCards', game.playerCards(socket.id));
-    Object.keys(game.players).forEach((socketId) => {
-      socket.to(`${socketId}`).emit('playerCards', game.playerCards(socketId));
-    });
+    broadcastAllPlayersCards(socket, game);
+    broadcastGameState(socket, game.state());
+  });
 
+  socket.on('reset', () => {
+    console.log('reset game');
+    game.init();
+
+    broadcastAllPlayersCards(socket, game);
     broadcastGameState(socket, game.state());
   });
 

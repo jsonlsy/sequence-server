@@ -6,11 +6,15 @@ const BLUE_COLOR = 'blue';
 
 class Game {
   constructor() {
+    this.players = {}; // { socketId: { color: } }
+    this.init();
+  }
+
+  init() {
     this.started = false;
     this.paused = false;
-    this.players = {}; // { socketId: { color: } }
     this.playerCardsMap = {}; // { socketId: [] }
-    this.removedPlayers = []; // [ { card:, turn: }]
+    this.removedPlayers = []; // [ { card:, turn:, color: }]
     this.turns = [];
     this.currentTurn = 0;
     this.board = new Board();
@@ -36,36 +40,39 @@ class Game {
 
     if (this.started && !this.removedPlayers.length) return;
     let color;
-
     if (Object.keys(this.players).length % 2 === 0) {
       color = RED_COLOR;
     } else {
       color = BLUE_COLOR;
     }
-    this.players[playerId] = { color };
 
     if (this.paused) {
       const removedPlayer = this.removedPlayers.shift();
+      color = removedPlayer.color;
       this.playerCardsMap[playerId] = removedPlayer.cards;
       this.turns[removedPlayer.turn] = playerId;
       if (!this.removedPlayers.length) this.paused = false;
     }
+
+    this.players[playerId] = { color };
   }
 
   removePlayer(playerId) {
     if (!this.players[playerId]) return;
-
-    delete this.players[playerId];
 
     if (this.started) {
       this.paused = true;
       this.removedPlayers.push({
         cards: this.playerCardsMap[playerId],
         turn: this.turns.indexOf(playerId),
+        color: this.players[playerId].color,
       });
+
       delete this.playerCardsMap[playerId];
       delete this.turns[playerId];
     }
+
+    delete this.players[playerId];
   }
 
   play(cardCode, rowIndex, colIndex, playerId) {
@@ -76,6 +83,8 @@ class Game {
     // TODO: check if it is player's turn
 
     // TODO: check if card is mapped to row and col indexes
+
+    if (this.paused || this.board.winner) return;
 
     const { color } = this.players[playerId];
     this.board.assign(rowIndex, colIndex, color);
