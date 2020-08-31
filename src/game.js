@@ -6,7 +6,7 @@ const BLUE_COLOR = 'blue';
 
 class Game {
   constructor() {
-    this.players = {}; // { socketId: { color: } }
+    this.players = {}; // { socketId: { color:, name: } }
     this.init();
   }
 
@@ -35,7 +35,7 @@ class Game {
     });
   }
 
-  addPlayer(playerId) {
+  addPlayer(playerId, name) {
     // TODO: maximum number of players
 
     if (this.started && !this.removedPlayers.length) return;
@@ -54,7 +54,7 @@ class Game {
       if (!this.removedPlayers.length) this.paused = false;
     }
 
-    this.players[playerId] = { color };
+    this.players[playerId] = { color, name };
   }
 
   removePlayer(playerId) {

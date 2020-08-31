@@ -4,7 +4,7 @@ const express = require('express');
 
 const app = express();
 const server = require('http').createServer(app);
-const io = require('socket.io').listen(server);
+const io = require('socket.io').listen(server, { pingTimeout: 7000 });
 
 app.get('/', (_req, res) => {
   res.sendFile(`${__dirname}/index.html`);
@@ -28,17 +28,21 @@ const games = {};
 io.on('connection', (socket) => {
   console.log('a user connected');
 
-  const { room } = socket.handshake.query;
+  let { room } = socket.handshake.query;
+  const { playerName } = socket.handshake.query;
+
+  console.log(room);
   let game;
-  if (room) {
+  if (room && room.length) {
     console.log('joining room');
     if (games[room]) {
       game = games[room];
       socket.join(room, () => {
-        game.addPlayer(socket.id);
+        game.addPlayer(socket.id, playerName);
         if (game.started) {
           socket.emit('playerCards', game.playerCards(socket.id));
         }
+        broadcastGameState(socket, room, game.state());
       });
     } else {
       // TODO: handle invalid room
@@ -46,10 +50,11 @@ io.on('connection', (socket) => {
   } else {
     console.log('creating new game');
     game = new Game();
+    game.addPlayer(socket.id, playerName);
+    room = socket.id;
     games[room] = game;
+    broadcastGameState(socket, room, game.state());
   }
-
-  broadcastGameState(socket, room, game.state());
 
   socket.on('play', ({ cardCode, rowIndex, colIndex }) => {
     game.play(cardCode, rowIndex, colIndex, socket.id);
