@@ -4,7 +4,7 @@ const express = require('express');
 
 const app = express();
 const server = require('http').createServer(app);
-const io = require('socket.io').listen(server, { pingTimeout: 7000 });
+const io = require('socket.io').listen(server, { pingTimeout: 30000 });
 
 app.get('/', (_req, res) => {
   res.sendFile(`${__dirname}/index.html`);
