@@ -80,10 +80,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    game.removePlayer(socket.id);
-    broadcastGameState(socket, room, game.state());
+    if (game) {
+      game.removePlayer(socket.id);
+      broadcastGameState(socket, room, game.state());
 
-    // TODO: delete game when last player disconnects
+      // TODO: delete game when last player disconnects
+    }
   });
 });
 

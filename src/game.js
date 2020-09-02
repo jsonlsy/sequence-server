@@ -3,6 +3,7 @@ import Deck from './deck/Deck';
 
 const RED_COLOR = 'red';
 const BLUE_COLOR = 'blue';
+const MAX_PLAYERS = 12;
 
 class Game {
   constructor() {
@@ -22,7 +23,7 @@ class Game {
   }
 
   start() {
-    // TODO: check that we have an even number of players
+    if (Object.keys(this.players).length % 2) return;
 
     if (this.started) return;
 
@@ -36,11 +37,12 @@ class Game {
   }
 
   addPlayer(playerId, name) {
-    // TODO: maximum number of players
+    const nPlayers = Object.keys(this.players).length;
+    if (nPlayers === MAX_PLAYERS
+      || (this.started && !this.removedPlayers.length)) return;
 
-    if (this.started && !this.removedPlayers.length) return;
     let color;
-    if (Object.keys(this.players).length % 2 === 0) {
+    if (nPlayers % 2 === 0) {
       color = RED_COLOR;
     } else {
       color = BLUE_COLOR;
@@ -83,21 +85,38 @@ class Game {
     // TODO: check if it is player's turn
 
     // TODO: check if card is mapped to row and col indexes
-
     if (this.paused || this.board.winner) return;
 
-    const { color } = this.players[playerId];
-    this.board.assign(rowIndex, colIndex, color);
     let cardPlayed;
+    let cardIndex;
+    let valid;
     this.playerCardsMap[playerId].forEach((playerCard, i) => {
       if (!cardPlayed && playerCard.getCode() === cardCode) {
         cardPlayed = playerCard;
-        const [newCard] = this.deck.draw(1);
-        this.playerCardsMap[playerId][i] = newCard;
+        cardIndex = i;
+        valid = this.isValidPlay(cardPlayed, rowIndex, colIndex);
       }
     });
-    this.deck.discard(cardPlayed);
-    this.currentTurn = (this.currentTurn + 1) % Object.keys(this.players).length;
+    if (valid) {
+      // apply changes to board
+      let boardChanged;
+      const { color } = this.players[playerId];
+      if (cardPlayed.isRemove()) {
+        boardChanged = this.board.unassign(rowIndex, colIndex);
+      } else {
+        boardChanged = this.board.assign(rowIndex, colIndex, color);
+      }
+
+      if (boardChanged) {
+        // discard and draw new card
+        const [newCard] = this.deck.draw(1);
+        this.playerCardsMap[playerId][cardIndex] = newCard;
+        this.deck.discard(cardPlayed);
+
+        // finish turn
+        this.currentTurn = (this.currentTurn + 1) % Object.keys(this.players).length;
+      }
+    }
   }
 
   state() {
@@ -115,6 +134,11 @@ class Game {
 
   playerCards(playerId) {
     return this.playerCardsMap[playerId];
+  }
+
+  isValidPlay(card, rowIndex, colIndex) {
+    return this.board.checkCard(card.getCode(), rowIndex, colIndex)
+      || card.isWildcard() || card.isRemove();
   }
 }
 

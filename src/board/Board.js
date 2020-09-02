@@ -7,11 +7,26 @@ class Board {
     boardMap.forEach((row, rowIndex) => {
       this.state[rowIndex] = [];
       row.forEach((cardCode, colIndex) => {
-        this.cardMap[cardCode] = [rowIndex, colIndex];
+        if (this.cardMap[cardCode]) {
+          this.cardMap[cardCode].push([rowIndex, colIndex]);
+        } else {
+          this.cardMap[cardCode] = [[rowIndex, colIndex]];
+        }
         this.state[rowIndex][colIndex] = { cardCode };
       });
     });
     this.size = this.state.length;
+  }
+
+  checkCard(cardCode, rowIndex, colIndex) {
+    const indexes = this.cardMap[cardCode];
+    let valid = false;
+    if (indexes) {
+      indexes.forEach(([row, col]) => {
+        valid = valid || ((row === rowIndex) && (col === colIndex));
+      });
+    }
+    return valid;
   }
 
   assign(rowIndex, colIndex, color) {
@@ -19,6 +34,13 @@ class Board {
     if (tile.color) return false;
     tile.color = color;
     this.checkWinner(rowIndex, colIndex);
+    return true;
+  }
+
+  unassign(rowIndex, colIndex) {
+    const tile = this.state[rowIndex][colIndex];
+    if (!tile.color) return false;
+    delete tile.color;
     return true;
   }
 
