@@ -10,7 +10,6 @@ class SequenceCard extends Card {
   }
 
   isWildcard() {
-    return true;
     return ['JD', 'JC'].includes(this.getCode());
   }
 
