@@ -57,9 +57,15 @@ io.on('connection', (socket) => {
   }
 
   socket.on('play', ({ cardCode, rowIndex, colIndex }) => {
-    game.play(cardCode, rowIndex, colIndex, socket.id);
+    const played = game.play(cardCode, rowIndex, colIndex, socket.id);
     broadcastGameState(socket, room, game.state());
     socket.emit('playerCards', game.playerCards(socket.id));
+    if (!played) {
+      socket.emit('gameError', 'Invalid move');
+    }
+    if (game.winner) {
+      socket.emit('winner', game.winner);
+    }
   });
 
   socket.on('start', () => {

@@ -4,6 +4,13 @@ import Deck from './deck/Deck';
 const RED_COLOR = 'red';
 const BLUE_COLOR = 'blue';
 const MAX_PLAYERS = 12;
+const NUM_CARDS_TO_DEAL = {
+  2: 7,
+  4: 6,
+  8: 4,
+  10: 3,
+  12: 3,
+};
 
 class Game {
   constructor() {
@@ -20,18 +27,23 @@ class Game {
     this.currentTurn = 0;
     this.board = new Board();
     this.deck = new Deck();
+    this.winner = undefined;
+    this.numSequence = {};
+    this.numSequence[RED_COLOR] = 0;
+    this.numSequence[BLUE_COLOR] = 0;
   }
 
   start() {
-    if (Object.keys(this.players).length % 2) return;
+    const nPlayers = Object.keys(this.players).length;
+    if (nPlayers % 2 || nPlayers > MAX_PLAYERS) return;
 
     if (this.started) return;
 
     this.started = true;
     this.deck.shuffleAll();
     Object.keys(this.players).forEach((playerId) => {
-      // TODO: calculate number of cards based on number of players
-      this.playerCardsMap[playerId] = this.deck.draw(5);
+      const numCards = NUM_CARDS_TO_DEAL[nPlayers];
+      this.playerCardsMap[playerId] = this.deck.draw(numCards);
       this.turns.push(playerId);
     });
   }
@@ -78,14 +90,8 @@ class Game {
   }
 
   play(cardCode, rowIndex, colIndex, playerId) {
-    // TODO: check if player has card?
-
-    // TODO: check for special card
-
     // TODO: check if it is player's turn
-
-    // TODO: check if card is mapped to row and col indexes
-    if (this.paused || this.board.winner) return;
+    if (this.paused || this.winner) return false;
 
     let cardPlayed;
     let cardIndex;
@@ -108,6 +114,14 @@ class Game {
       }
 
       if (boardChanged) {
+        if (!cardPlayed.isRemove()) {
+          // check for any sequence created and update winner if necessary
+          this.numSequence[color] += this.board.checkSequence(rowIndex, colIndex);
+          if (this.numSequence[color] >= 2) {
+            this.winner = color;
+          }
+        }
+
         // discard and draw new card
         const [newCard] = this.deck.draw(1);
         this.playerCardsMap[playerId][cardIndex] = newCard;
@@ -116,14 +130,17 @@ class Game {
         // finish turn
         this.currentTurn = (this.currentTurn + 1) % Object.keys(this.players).length;
       }
+
+      return boardChanged;
     }
+    return false;
   }
 
   state() {
     return {
       players: this.players,
       board: this.board.state,
-      winner: this.board.winner,
+      winner: this.winner,
       status: {
         started: this.started,
         paused: this.paused,
