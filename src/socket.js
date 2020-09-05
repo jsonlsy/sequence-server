@@ -82,7 +82,9 @@ const listen = (server) => {
         game.removePlayer(socket.id);
         broadcastGameState(socket, room, game.state());
 
-        // TODO: delete game when last player disconnects
+        if (Object.keys(game.players).length === 0) {
+          delete games[room];
+        }
       }
     });
   });

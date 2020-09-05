@@ -42,7 +42,6 @@ class Board {
 
     // if assigning existing color to tile creates a sequence -> this move would break a sequence
     const nSequenceCreated = this.checkSequence(rowIndex, colIndex);
-    console.log(nSequenceCreated);
     if (nSequenceCreated > 0) return false;
 
     delete tile.color;

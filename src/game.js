@@ -14,7 +14,7 @@ const NUM_CARDS_TO_DEAL = {
 
 class Game {
   constructor() {
-    this.players = {}; // { socketId: { color:, name: } }
+    this.players = {}; // { socketId: { color:, name:, lastMove: { card:, row:, col: } } }
     this.init();
   }
 
@@ -22,7 +22,7 @@ class Game {
     this.started = false;
     this.paused = false;
     this.playerCardsMap = {}; // { socketId: [] }
-    this.removedPlayers = []; // [ { card:, turn:, color: }]
+    this.removedPlayers = []; // [ { cards:, turn:, color:, lastMove: } ]
     this.turns = [];
     this.currentTurn = 0;
     this.board = new Board();
@@ -31,6 +31,9 @@ class Game {
     this.numSequence = {};
     this.numSequence[RED_COLOR] = 0;
     this.numSequence[BLUE_COLOR] = 0;
+    Object.keys(this.players).forEach((playerId) => {
+      delete this.players[playerId].lastMove;
+    });
   }
 
   start() {
@@ -54,6 +57,8 @@ class Game {
       || (this.started && !this.removedPlayers.length)) return;
 
     let color;
+    let lastMove;
+
     if (nPlayers % 2 === 0) {
       color = RED_COLOR;
     } else {
@@ -63,12 +68,13 @@ class Game {
     if (this.paused) {
       const removedPlayer = this.removedPlayers.shift();
       color = removedPlayer.color;
+      lastMove = removedPlayer.lastMove;
       this.playerCardsMap[playerId] = removedPlayer.cards;
       this.turns[removedPlayer.turn] = playerId;
       if (!this.removedPlayers.length) this.paused = false;
     }
 
-    this.players[playerId] = { color, name };
+    this.players[playerId] = { color, name, lastMove };
   }
 
   removePlayer(playerId) {
@@ -80,6 +86,7 @@ class Game {
         cards: this.playerCardsMap[playerId],
         turn: this.turns.indexOf(playerId),
         color: this.players[playerId].color,
+        lastMove: this.players[playerId].lastMove,
       });
 
       delete this.playerCardsMap[playerId];
@@ -126,6 +133,13 @@ class Game {
         const [newCard] = this.deck.draw(1);
         this.playerCardsMap[playerId][cardIndex] = newCard;
         this.deck.discard(cardPlayed);
+
+        // save move
+        this.players[playerId].lastMove = {
+          card: cardCode,
+          row: rowIndex,
+          col: colIndex,
+        };
 
         // finish turn
         this.currentTurn = (this.currentTurn + 1) % Object.keys(this.players).length;
