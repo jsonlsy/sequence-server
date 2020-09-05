@@ -15,6 +15,7 @@ const NUM_CARDS_TO_DEAL = {
 class Game {
   constructor() {
     this.players = {}; // { socketId: { color:, name:, lastMove: { card:, row:, col: } } }
+    this.admin = undefined;
     this.init();
   }
 
@@ -36,7 +37,16 @@ class Game {
     });
   }
 
-  start() {
+  reset(currentPlayer) {
+    console.log(this.admin);
+    if (this.admin !== currentPlayer) return;
+    this.init();
+  }
+
+  start(currentPlayer) {
+    console.log(this.admin);
+    if (this.admin !== currentPlayer) return;
+
     const nPlayers = Object.keys(this.players).length;
     if (nPlayers % 2 || nPlayers > MAX_PLAYERS) return;
 
@@ -52,18 +62,12 @@ class Game {
   }
 
   addPlayer(playerId, name) {
-    const nPlayers = Object.keys(this.players).length;
-    if (nPlayers === MAX_PLAYERS
+    const allPlayersIds = Object.keys(this.players);
+    if (allPlayersIds.length === MAX_PLAYERS
       || (this.started && !this.removedPlayers.length)) return;
 
     let color;
     let lastMove;
-
-    if (nPlayers % 2 === 0) {
-      color = RED_COLOR;
-    } else {
-      color = BLUE_COLOR;
-    }
 
     if (this.paused) {
       const removedPlayer = this.removedPlayers.shift();
@@ -74,7 +78,25 @@ class Game {
       if (!this.removedPlayers.length) this.paused = false;
     }
 
+    if (!color) {
+      let nRed = 0;
+      let nBlue = 0;
+      allPlayersIds.forEach((pId) => {
+        if (this.players[pId].color === RED_COLOR) {
+          nRed += 1;
+        } else {
+          nBlue += 1;
+        }
+      });
+      if (nRed <= nBlue) {
+        color = RED_COLOR;
+      } else {
+        color = BLUE_COLOR;
+      }
+    }
+
     this.players[playerId] = { color, name, lastMove };
+    if (!this.admin) this.admin = playerId;
   }
 
   removePlayer(playerId) {
@@ -94,10 +116,18 @@ class Game {
     }
 
     delete this.players[playerId];
+
+    const playersIds = Object.keys(this.players);
+    if (this.admin === playerId && playersIds.length) {
+      [this.admin] = Object.keys(this.players);
+    }
+    console.log(this.admin);
   }
 
   play(cardCode, rowIndex, colIndex, playerId) {
-    // TODO: check if it is player's turn
+    // check if it is the player's turn
+    if (playerId !== this.turns[this.currentTurn]) return false;
+
     if (this.paused || this.winner) return false;
 
     const cardIndex = this.playerCardsIndexOf(playerId, cardCode);

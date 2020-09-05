@@ -38,6 +38,8 @@ const listen = (server) => {
         });
       } else {
         // TODO: handle invalid room
+        socket.disconnect(true);
+        return;
       }
     } else {
       console.log('creating new game');
@@ -47,6 +49,8 @@ const listen = (server) => {
       games[room] = game;
       broadcastGameState(socket, room, game.state());
     }
+
+    socket.emit('admin', game.admin);
 
     socket.on('play', ({ cardCode, rowIndex, colIndex }) => {
       const played = game.play(cardCode, rowIndex, colIndex, socket.id);
@@ -62,7 +66,7 @@ const listen = (server) => {
 
     socket.on('start', () => {
       console.log('starting game');
-      game.start();
+      game.start(socket.id);
 
       broadcastAllPlayersCards(socket, game);
       broadcastGameState(socket, room, game.state());
@@ -79,7 +83,7 @@ const listen = (server) => {
 
     socket.on('reset', () => {
       console.log('reset game');
-      game.init();
+      game.reset(socket.id);
 
       broadcastAllPlayersCards(socket, game);
       broadcastGameState(socket, room, game.state());
@@ -90,6 +94,8 @@ const listen = (server) => {
       if (game) {
         game.removePlayer(socket.id);
         broadcastGameState(socket, room, game.state());
+
+        socket.to(room).emit('admin', game.admin);
 
         if (Object.keys(game.players).length === 0) {
           delete games[room];
