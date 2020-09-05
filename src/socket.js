@@ -59,6 +59,7 @@ const listen = (server) => {
       }
       if (game.winner) {
         socket.emit('winner', game.winner);
+        socket.to(room).emit('winner', game.winner);
       }
     });
 
