@@ -130,8 +130,12 @@ class Game {
         }
 
         // discard and draw new card
-        const [newCard] = this.deck.draw(1);
-        this.playerCardsMap[playerId][cardIndex] = newCard;
+        if (this.deck.remainingLength) {
+          const [newCard] = this.deck.draw(1);
+          this.playerCardsMap[playerId][cardIndex] = newCard;
+        } else {
+          this.playerCardsMap[playerId].splice(cardIndex, 1);
+        }
         this.deck.discard(cardPlayed);
 
         // save move
@@ -160,6 +164,7 @@ class Game {
         paused: this.paused,
       },
       turn: this.turns[this.currentTurn],
+      deck: this.deck.remainingLength,
     };
   }
 
