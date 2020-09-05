@@ -68,6 +68,15 @@ const listen = (server) => {
       broadcastGameState(socket, room, game.state());
     });
 
+    socket.on('discard', ({ cardCode }) => {
+      const discarded = game.discard(socket.id, cardCode);
+      if (discarded) {
+        socket.emit('playerCards', game.playerCards(socket.id));
+      } else {
+        socket.emit('gameError', 'You can only discard a card which does not have an open space on the game board');
+      }
+    });
+
     socket.on('reset', () => {
       console.log('reset game');
       game.init();

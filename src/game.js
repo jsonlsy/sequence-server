@@ -100,16 +100,10 @@ class Game {
     // TODO: check if it is player's turn
     if (this.paused || this.winner) return false;
 
-    let cardPlayed;
-    let cardIndex;
-    let valid;
-    this.playerCardsMap[playerId].forEach((playerCard, i) => {
-      if (!cardPlayed && playerCard.getCode() === cardCode) {
-        cardPlayed = playerCard;
-        cardIndex = i;
-        valid = this.isValidPlay(cardPlayed, rowIndex, colIndex);
-      }
-    });
+    const cardIndex = this.playerCardsIndexOf(playerId, cardCode);
+    const cardPlayed = this.playerCardsMap[playerId][cardIndex];
+    const valid = this.isValidPlay(cardPlayed, rowIndex, colIndex);
+
     if (valid) {
       // apply changes to board
       let boardChanged;
@@ -121,22 +115,16 @@ class Game {
       }
 
       if (boardChanged) {
+        // check for any sequence created and update winner if necessary
         if (!cardPlayed.isRemove()) {
-          // check for any sequence created and update winner if necessary
-          this.numSequence[color] += this.board.checkSequence(rowIndex, colIndex);
+          this.numSequence[color] += this.board.numSequenceCreated(rowIndex, colIndex);
           if (this.numSequence[color] >= 2) {
             this.winner = color;
           }
         }
 
         // discard and draw new card
-        if (this.deck.remainingLength) {
-          const [newCard] = this.deck.draw(1);
-          this.playerCardsMap[playerId][cardIndex] = newCard;
-        } else {
-          this.playerCardsMap[playerId].splice(cardIndex, 1);
-        }
-        this.deck.discard(cardPlayed);
+        this.discardAndDrawCard(playerId, cardIndex);
 
         // save move
         this.players[playerId].lastMove = {
@@ -150,6 +138,17 @@ class Game {
       }
 
       return boardChanged;
+    }
+    return false;
+  }
+
+  discard(playerId, cardCode) {
+    const cardIndex = this.playerCardsIndexOf(playerId, cardCode);
+    const cardToDiscard = this.playerCardsMap[playerId][cardIndex];
+
+    if (!cardToDiscard.isRemove() && !cardToDiscard.isWildcard() && !this.board.isCardUsable(cardCode)) {
+      this.discardAndDrawCard(playerId, cardIndex);
+      return true;
     }
     return false;
   }
@@ -172,9 +171,30 @@ class Game {
     return this.playerCardsMap[playerId];
   }
 
+  playerCardsIndexOf(playerId, cardCode) {
+    let index;
+    this.playerCardsMap[playerId].forEach((playerCard, i) => {
+      if (!index && playerCard.getCode() === cardCode) {
+        index = i;
+      }
+    });
+    return index;
+  }
+
   isValidPlay(card, rowIndex, colIndex) {
-    return this.board.checkCard(card.getCode(), rowIndex, colIndex)
+    return this.board.isCardIndexValid(card.getCode(), rowIndex, colIndex)
       || card.isWildcard() || card.isRemove();
+  }
+
+  discardAndDrawCard(playerId, cardIndex) {
+    const card = this.playerCardsMap[playerId][cardIndex];
+    if (this.deck.remainingLength) {
+      const [newCard] = this.deck.draw(1);
+      this.playerCardsMap[playerId][cardIndex] = newCard;
+    } else {
+      this.playerCardsMap[playerId].splice(cardIndex, 1);
+    }
+    this.deck.discard(card);
   }
 }
 

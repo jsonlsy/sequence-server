@@ -18,7 +18,7 @@ class Board {
     this.size = this.state.length;
   }
 
-  checkCard(cardCode, rowIndex, colIndex) {
+  isCardIndexValid(cardCode, rowIndex, colIndex) {
     const indexes = this.cardMap[cardCode];
     let valid = false;
     if (indexes) {
@@ -27,6 +27,17 @@ class Board {
       });
     }
     return valid;
+  }
+
+  isCardUsable(cardCode) {
+    const indexes = this.cardMap[cardCode];
+    let usable = false;
+    if (indexes) {
+      indexes.forEach(([row, col]) => {
+        usable = usable || !this.state[row][col].color;
+      });
+    }
+    return usable;
   }
 
   assign(rowIndex, colIndex, color) {
@@ -41,14 +52,14 @@ class Board {
     if (!tile.color) return false;
 
     // if assigning existing color to tile creates a sequence -> this move would break a sequence
-    const nSequenceCreated = this.checkSequence(rowIndex, colIndex);
+    const nSequenceCreated = this.numSequenceCreated(rowIndex, colIndex);
     if (nSequenceCreated > 0) return false;
 
     delete tile.color;
     return true;
   }
 
-  checkSequence(rowIndex, colIndex) {
+  numSequenceCreated(rowIndex, colIndex) {
     const lastPlayedTile = this.state[rowIndex][colIndex];
     const lastPlayedColor = lastPlayedTile.color;
     let nSequenceCreated = 0;
