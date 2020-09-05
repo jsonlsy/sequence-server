@@ -38,13 +38,11 @@ class Game {
   }
 
   reset(currentPlayer) {
-    console.log(this.admin);
     if (this.admin !== currentPlayer) return;
     this.init();
   }
 
   start(currentPlayer) {
-    console.log(this.admin);
     if (this.admin !== currentPlayer) return;
 
     const nPlayers = Object.keys(this.players).length;
@@ -121,7 +119,6 @@ class Game {
     if (this.admin === playerId && playersIds.length) {
       [this.admin] = Object.keys(this.players);
     }
-    console.log(this.admin);
   }
 
   play(cardCode, rowIndex, colIndex, playerId) {

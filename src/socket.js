@@ -23,11 +23,10 @@ const listen = (server) => {
     let { room } = socket.handshake.query;
     const { playerName } = socket.handshake.query;
 
-    console.log(room);
     let game;
     if (room && room.length) {
-      console.log('joining room');
       if (games[room]) {
+        console.log(`joining room:: ${room}`);
         game = games[room];
         socket.join(room, () => {
           game.addPlayer(socket.id, playerName);
@@ -37,12 +36,11 @@ const listen = (server) => {
           broadcastGameState(socket, room, game.state());
         });
       } else {
-        // TODO: handle invalid room
         socket.disconnect(true);
         return;
       }
     } else {
-      console.log('creating new game');
+      console.log(`creating new game:: ${socket.id}`);
       game = new Game();
       game.addPlayer(socket.id, playerName);
       room = socket.id;
@@ -65,7 +63,6 @@ const listen = (server) => {
     });
 
     socket.on('start', () => {
-      console.log('starting game');
       game.start(socket.id);
 
       broadcastAllPlayersCards(socket, game);
@@ -82,7 +79,6 @@ const listen = (server) => {
     });
 
     socket.on('reset', () => {
-      console.log('reset game');
       game.reset(socket.id);
 
       broadcastAllPlayersCards(socket, game);
