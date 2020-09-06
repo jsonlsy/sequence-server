@@ -7,6 +7,7 @@ const MAX_PLAYERS = 12;
 const NUM_CARDS_TO_DEAL = {
   2: 7,
   4: 6,
+  6: 5,
   8: 4,
   10: 3,
   12: 3,
