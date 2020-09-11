@@ -58,8 +58,8 @@ const listen = (server) => {
         socket.emit('gameError', 'Invalid move');
       }
       if (game.winner) {
-        socket.emit('winner', game.winner);
-        socket.to(room).emit('winner', game.winner);
+        socket.emit('winner', { winner: game.winner, score: game.score });
+        socket.to(room).emit('winner', { winner: game.winner, score: game.score });
       }
     });
 
