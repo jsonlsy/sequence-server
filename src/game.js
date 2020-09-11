@@ -17,6 +17,9 @@ class Game {
   constructor() {
     this.players = {}; // { socketId: { color:, name:, lastMove: { card:, row:, col: } } }
     this.admin = undefined;
+    this.score = {};
+    this.score[RED_COLOR] = 0;
+    this.score[BLUE_COLOR] = 0;
     this.init();
   }
 
@@ -58,6 +61,9 @@ class Game {
       this.playerCardsMap[playerId] = this.deck.draw(numCards);
       this.turns.push(playerId);
     });
+
+    const nRoundsPlayed = this.score[RED_COLOR] + this.score[BLUE_COLOR];
+    this.currentTurn = nRoundsPlayed % nPlayers;
   }
 
   addPlayer(playerId, name) {
@@ -148,6 +154,7 @@ class Game {
           this.numSequence[color] += this.board.numSequenceCreated(rowIndex, colIndex);
           if (this.numSequence[color] >= 2) {
             this.winner = color;
+            this.score[color] += 1;
           }
         }
 
