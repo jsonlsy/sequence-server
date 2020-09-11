@@ -216,11 +216,10 @@ class Game {
 
   discardAndDrawCard(playerId, cardIndex) {
     const card = this.playerCardsMap[playerId][cardIndex];
+    this.playerCardsMap[playerId].splice(cardIndex, 1);
     if (this.deck.remainingLength) {
       const [newCard] = this.deck.draw(1);
-      this.playerCardsMap[playerId][cardIndex] = newCard;
-    } else {
-      this.playerCardsMap[playerId].splice(cardIndex, 1);
+      this.playerCardsMap[playerId].push(newCard);
     }
     this.deck.discard(card);
   }
