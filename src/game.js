@@ -56,11 +56,46 @@ class Game {
 
     this.started = true;
     this.deck.shuffleAll();
+
+    const playersByColor = {};
+    playersByColor[RED_COLOR] = [];
+    playersByColor[BLUE_COLOR] = [];
+
     Object.keys(this.players).forEach((playerId) => {
       const numCards = NUM_CARDS_TO_DEAL[nPlayers];
       this.playerCardsMap[playerId] = this.deck.draw(numCards);
-      this.turns.push(playerId);
+      const { color } = this.players[playerId];
+      playersByColor[color].push(playerId);
     });
+
+    // re-assign players' color if needed
+    // - the 2 teams should have the same number of players
+    const teamsDiff = playersByColor[RED_COLOR].length > playersByColor[BLUE_COLOR].length;
+    if (teamsDiff !== 0) {
+      let fromTeam;
+      let toTeam;
+      if (teamsDiff > 0) {
+        // more red than blue
+        fromTeam = RED_COLOR;
+        toTeam = BLUE_COLOR;
+      } else {
+        // more blue than red
+        fromTeam = BLUE_COLOR;
+        toTeam = RED_COLOR;
+      }
+      const playersToSwap = playersByColor[fromTeam].splice(-1, teamsDiff);
+      playersByColor[toTeam] = playersByColor[toTeam].concat(playersToSwap);
+      playersToSwap.forEach((playerToSwap) => {
+        this.players[playerToSwap].color = toTeam;
+      });
+    }
+
+    // determine turns
+    // safe to assume each team has half the total number of players after re-assigning
+    for (let i = 0; i < nPlayers / 2; i += 1) {
+      this.turns.push(playersByColor[RED_COLOR][i]);
+      this.turns.push(playersByColor[BLUE_COLOR][i]);
+    }
 
     const nRoundsPlayed = this.score[RED_COLOR] + this.score[BLUE_COLOR];
     this.currentTurn = nRoundsPlayed % nPlayers;
@@ -198,6 +233,7 @@ class Game {
         paused: this.paused,
       },
       turn: this.turns[this.currentTurn],
+      turns: this.turns,
       deck: this.deck.remainingLength,
     };
   }
